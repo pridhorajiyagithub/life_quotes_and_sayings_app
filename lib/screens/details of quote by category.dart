@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:life_quotes_and_sayings_app/widgets/download_image.dart';
@@ -15,8 +18,8 @@ class DetailsOfCategory extends StatefulWidget {
 }
 
 class _DetailsOfCategoryState extends State<DetailsOfCategory> {
-  List<bool> isSelected =
-      List.generate(Global.quoteCategory.length, (index) => false);
+  Uint8List? image;
+  Random random = Random();
 
   @override
   Widget build(BuildContext context) {
@@ -40,139 +43,90 @@ class _DetailsOfCategoryState extends State<DetailsOfCategory> {
         builder: (context, snapShot) {
           if (snapShot.hasData) {
             List<DBQuot>? res = snapShot.data;
+            int? randomIndex = random.nextInt(res!.length);
+            DBQuot randomImage = res[randomIndex];
 
             return ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                itemCount: res!.length,
-                itemBuilder: (context, i) {
-                  return Container(
-                    margin: const EdgeInsets.all(15),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        Global.selectedQuote = res[i];
-                        Navigator.of(context).pushNamed("details_page");
-                      },
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.6),
-                              blurRadius: 5,
-                              offset: const Offset(0, 1),
+              physics: const BouncingScrollPhysics(),
+              itemCount: res!.length,
+              itemBuilder: (context, i) {
+                image = res[i].image;
+                return Container(
+                  margin: const EdgeInsets.all(15),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      Global.selectedQuote = res[i];
+                      Navigator.of(context)
+                          .pushNamed("/final_output", arguments: res[i]);
+                    },
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.6),
+                            blurRadius: 5,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: SizedBox(
+                        height: 350,
+                        child: Column(
+                          children: [
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(10)),
+                                    image: DecorationImage(
+                                      colorFilter: ColorFilter.mode(
+                                        Colors.black.withOpacity(0.6),
+                                        BlendMode.hardLight,
+                                      ),
+                                      fit: BoxFit.cover,
+                                      image: MemoryImage(
+                                        image!,
+                                      ),
+                                    ),
+                                  ),
+                                  height: 350,
+                                  width: double.infinity,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Text(
+                                    res[i].quot,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                /* Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(100))),
+                                )*/
+                              ],
                             ),
                           ],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: SizedBox(
-                          height: 420,
-                          child: Column(
-                            children: [
-                              Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.only(
-                                        topRight: Radius.circular(10),
-                                        topLeft: Radius.circular(10),
-                                      ),
-                                      image: DecorationImage(
-                                        colorFilter: ColorFilter.mode(
-                                          Colors.black.withOpacity(0.6),
-                                          BlendMode.hardLight,
-                                        ),
-                                        fit: BoxFit.cover,
-                                        image: MemoryImage(
-                                          res[i].image,
-                                        ),
-                                      ),
-                                    ),
-                                    height: 350,
-                                    width: double.infinity,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Text(
-                                      res[i].quot,
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                height: 70,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    IconButton(
-                                      onPressed: () {},
-                                      icon: const Icon(
-                                        Icons.image,
-                                        color: Colors.purple,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        copyQuote(
-                                          context: context,
-                                          res: res[i],
-                                        );
-                                      },
-                                      icon: const Icon(
-                                        Icons.copy_rounded,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        ImageDownloader(
-                                          context: context,
-                                          res: res[i],
-                                          isShare: true,
-                                        );
-                                      },
-                                      icon: const Icon(
-                                        Icons.share,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        ImageDownloader(
-                                          context: context,
-                                          res: res[i],
-                                          isShare: false,
-                                        );
-                                      },
-                                      icon: const Icon(
-                                        Icons.download,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                    IconButton(
-                                        onPressed: () {},
-                                        icon: const Icon(
-                                          Icons.star_border,
-                                          color: Colors.teal,
-                                        )),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),
-                  );
-                });
+                  ),
+                );
+              },
+            );
           } else if (snapShot.hasError) {
             return Center(
               child: Text("${snapShot.error}"),
